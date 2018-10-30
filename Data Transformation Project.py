@@ -25,7 +25,7 @@ import numpy as np
 from sklearn import preprocessing
 
 
-# In[101]:
+# In[2]:
 
 
 # Create dataframe
@@ -33,50 +33,89 @@ df = pd.read_csv("OpioidsMerged.csv")
 df.head()
 
 
-# In[76]:
+# In[3]:
+
+
+df.tail()
+
+
+# In[4]:
 
 
 # View dataset shape
 df.shape
 
 
-# In[100]:
+# In[5]:
 
 
-# Select variables for transformation
-ds = df[['Vrid','var9', 'var11', 'var12', 'var13', 'var16', 'var217', 'var230', 'var231', 'var232', 'var233', 'var234', 
-        'var235', 'var236', 'var246']]
+type(df)
+
+
+# In[112]:
+
+
+# Create subset for transformation
+ds = df[['Vrid','var9', 'var11', 'var12', 'var13', 'var16', 'var217', 'var230', 'var231', 'var232', 'var233', 
+         'var234', 'var235', 'var236', 'var246']]
 ds.head()
 
 
-# In[107]:
+# In[114]:
+
+
+ds.set_index('Vrid')
+
+
+# In[115]:
+
+
+ds.head()
+
+
+# In[116]:
+
+
+ds.tail()
+
+
+# In[117]:
+
+
+ds.dtypes
+
+
+# In[118]:
 
 
 # View value counts of variables for transformation
 ds.iloc[:, 1:].apply(pd.value_counts)
 
 
-# In[99]:
+# In[122]:
 
 
 # Create new dataframe with transformed variables
-dsr = 0
-for i in ds:
-    if i=="Vrid":
-        dsr=ds
-    if i != "Vrid":
-        dsr= ds.apply(preprocessing.LabelEncoder().fit_transform)
+dsr = pd.DataFrame()
+dsr= ds.apply(preprocessing.LabelEncoder().fit_transform)
+dsr['Vrid'] = ds['Vrid']
 dsr.head()
 
 
-# In[109]:
+# In[123]:
+
+
+dsr.tail()
+
+
+# In[125]:
 
 
 # View value counts of transformed variables
 dsr.iloc[:, 1:].apply(pd.value_counts)
 
 
-# In[71]:
+# In[126]:
 
 
 # Validate transformation by checking that each transformed variable contains the right number of values and the same variance
@@ -89,32 +128,46 @@ for i in ds:
         print(i, "False")
 
 
-# In[72]:
+# In[143]:
 
 
 # Merge transformed variables with original dataset based on Vrid
-df_merged = pd.merge(df, dsr, how='left', on='Vrid')
+df_merged = pd.merge(df, dsr, how='left', on='Vrid', indicator=True)
 df_merged.head()
 
 
-# In[103]:
+# In[144]:
 
 
-# List new variables
-df_merged.iloc[:, -(len(dsr.columns)-1):].columns.tolist()
+df_merged.tail()
 
 
-# In[91]:
+# In[145]:
+
+
+# Validate merge by checking that values for each Vrid were present in both dataframes
+pd.value_counts(df_merged._merge)
+
+
+# In[146]:
 
 
 # Validate merge by checking shape of merged dataset
-if (len(df_merged) == len(df)) and (len(df_merged.columns) == len(df.columns)+len(dsr.columns)-1):
+if (len(df_merged) == len(df)) and (len(df_merged.columns) == len(df.columns)+len(dsr.columns)):
     print("True")
 else:
     print("False", df.shape, df_merged.shape)
 
 
-# In[90]:
+# In[147]:
+
+
+# Drop _merge column
+df_merged.drop("_merge", axis=1, inplace=True)
+df_merged.head()
+
+
+# In[148]:
 
 
 # Save df_merged as a new csv file
