@@ -83,6 +83,7 @@ ds.apply(pd.value_counts)
 # In[151]:
 
 
+# Transform nominal variables
 encoder = OneHotEncoder()
 ohe_array = encoder.fit_transform(ds).toarray()
 print(ohe_array)
